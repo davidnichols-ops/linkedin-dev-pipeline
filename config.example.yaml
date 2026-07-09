@@ -1,0 +1,51 @@
+# linkedin-dev-pipeline configuration
+# Copy to config.yaml and edit. Environment variables override these values.
+
+# Your GitHub username (activity is polled for this user).
+github_user: davidnichols-ops
+
+# Repos you own / contribute to under your own account. Activity for these
+# repos (issues, PRs, comments) is polled in addition to your user events.
+own_repos:
+  - davidnichols-ops/AAFP-research
+  - davidnichols-ops/aafp
+  - davidnichols-ops/aafp-go
+  - davidnichols-ops/repo-archaeologist
+  - davidnichols-ops/apple-quality-recognition-engine
+
+# Upstream repos to watch for opportunities (new issues, help-wanted, regressions).
+# These are NOT polled for your activity — only scanned for opportunities.
+watched_upstream:
+  - tensorflow/tensorflow
+  - ultralytics/ultralytics
+  - pytorch/pytorch
+  - roboflow/roboflow-python
+  - libp2p/rust-libp2p
+
+# LinkedIn's open-source org (linkedin-developers) — repos you contribute to.
+linkedin_upstream:
+  - linkedin-developers/linkedin-api-python-client
+  - linkedin-developers/linkedin-api-js-client
+  # add specific linkedin-developers/* repos you actually work with
+
+# Polling window in days (how far back to look for new activity).
+poll_window_days: 7
+
+# Drafting model on OpenRouter.
+draft_model: openai/gpt-4o-mini
+
+# Where to write draft posts (relative to project root).
+drafts_dir: drafts
+
+# SQLite state database location (relative to project root).
+state_db: data/ldp.sqlite
+
+# Content rotation categories the drafter should cycle through.
+content_categories:
+  - technical_deep_dive
+  - lessons_from_code_review
+  - architecture_reflection
+  - performance_investigation
+  - open_source_reflection
+  - small_engineering_tip
+  - weekly_engineering_log
