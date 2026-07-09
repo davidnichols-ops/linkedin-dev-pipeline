@@ -125,26 +125,36 @@ def draft(
 
 
 def _select_batch(events: list[Event]) -> list[Event]:
-    """Pick a coherent subset for one post: same kind if possible, else top N."""
+    """Pick a coherent subset for one post.
+
+    Prefers events that actually have title/body content (GitHub's user event
+    API returns sparse payloads for PR open/review/close events, but rich
+    content for issue comments). Groups by repo+number when possible so the
+    drafter gets full context on one piece of work.
+    """
     if not events:
         return []
-    by_kind: dict[str, list[Event]] = {}
-    for e in events:
-        by_kind.setdefault(e.kind, []).append(e)
-    # prefer kinds that tend to teach: pr_merged, pr_reviewed, issue_commented
-    priority = [
-        "pr_merged",
-        "pr_reviewed",
-        "issue_commented",
-        "pr_opened",
-        "issue_opened",
-        "opportunity",
-    ]
-    for k in priority:
-        if k in by_kind and by_kind[k]:
-            return by_kind[k][:3]
-    # fallback: first 3
-    return events[:3]
+    # only events with real content
+    substantive = [e for e in events if e.title or e.body]
+    if not substantive:
+        return events[:3]
+
+    # group by repo+number to give the drafter full context on one PR/issue
+    groups: dict[str, list[Event]] = {}
+    for e in substantive:
+        key = f"{e.repo}#{e.number}" if e.number else e.repo
+        groups.setdefault(key, []).append(e)
+
+    # prefer groups with the most events (richest context), then by kind priority
+    priority = {"issue_commented": 0, "pr_merged": 1, "issue_opened": 2, "pr_opened": 3, "opportunity": 4}
+
+    def group_score(item: tuple[str, list[Event]]) -> tuple:
+        _key, evs = item
+        best_kind = min((priority.get(e.kind, 99) for e in evs), default=99)
+        return (-len(evs), best_kind)
+
+    best_key = min(groups.items(), key=group_score)[0]
+    return groups[best_key][:5]
 
 
 @app.command()
